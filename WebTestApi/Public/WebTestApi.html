@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестовая регистрация</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #f0f2f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 320px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #4a90d9;
+            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.2);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4a90d9;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #357abd;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+            color: #333;
+            font-size: 16px;
+            min-height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-group">
+            <label for="field1">Логин</label>
+            <input type="text" id="field1" placeholder="Введите логин">
+        </div>
+        
+        <div class="form-group">
+            <label for="field2">Пароль</label>
+            <input type="text" id="field2" placeholder="Введите пароль">
+        </div>
+        
+        <div class="form-group">
+            <label for="field3">Город</label>
+            <input type="text" id="field3" placeholder="Введите город">
+        </div>
+        
+        <div class="form-group">
+            <label for="field4">Адрес</label>
+            <input type="text" id="field4" placeholder="Введите адрес">
+        </div>
+        
+        <button id="actionBtn">Отправить</button>
+        <div class="result" id="resultDisplay">Здесь появится результат</div>
+    </div>
+
+    <script>
+        const field1 = document.getElementById('field1');
+        const field2 = document.getElementById('field2');
+        const field3 = document.getElementById('field3');
+        const field4 = document.getElementById('field4');
+        
+        const btn = document.getElementById('actionBtn');
+        const result = document.getElementById('resultDisplay');
+
+        btn.addEventListener('click', async function() {
+            const login = field1.value.trim();
+            const password = field2.value.trim();
+            const city = field3.value.trim();
+            const address = field4.value.trim();
+            
+            if (!login || !password || !city || !address) {
+                result.textContent = '❌ Заполните все поля!';
+                result.style.color = 'red';
+                return;
+            }
+
+            try {
+                // 1. Регистрируем пользователя
+                const userResponse = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        login: login,
+                        password: password
+                    })
+                });
+
+                if (!userResponse.ok) {
+                    const error = await userResponse.text();
+                    result.textContent = `❌ Ошибка регистрации: ${error}`;
+                    result.style.color = 'red';
+                    return;
+                }
+
+                // 2. Создаём дом
+                const homeResponse = await fetch('/homes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        city: city,
+                        address: address
+                    })
+                });
+
+                if (homeResponse.ok) {
+                    result.textContent = '✅ Пользователь и дом успешно созданы!';
+                    result.style.color = 'green';
+                    field1.value = '';
+                    field2.value = '';
+                    field3.value = '';
+                    field4.value = '';
+                } else {
+                    const error = await homeResponse.text();
+                    result.textContent = `❌ Ошибка создания дома: ${error}`;
+                    result.style.color = 'red';
+                }
+            } catch (error) {
+                result.textContent = `❌ Ошибка соединения: ${error.message}`;
+                result.style.color = 'red';
+            }
+        });
+    </script>
+</body>
+</html>
